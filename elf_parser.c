@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/types.h>
@@ -514,3 +515,108 @@ void get_file_header(const char *pbuff) {
     // Section header string table index : Halfword e_shstrndx
     printf("%-33s: %d\n", "Section header string table index", *(uint16_t*) pbuff);
 }
+
+/*
+funtion of get the section headers
+*/
+void get_section_headers(const char *pbuff) {
+    // (pbuff + 60) contains the number of section headers
+    int SH_num = *(Elf64_Half*) (pbuff + 60);
+
+    // get shstrndex (section header string table index)
+    Elf64_Ehdr* pfilehead = (Elf64_Ehdr*) pbuff; // Elf64_Ehdr: struct of ELF file header
+    Elf64_Half eshstrndx = pfilehead->e_shstrndx;
+
+    // get the offset of section header string
+    Elf64_Shdr* psecheader = (Elf64_Shdr*) (pbuff + pfilehead->e_shoff); // Elf64_Shdr: struct of section header
+    Elf64_Shdr* pshstr = (Elf64_Shdr*) (psecheader + eshstrndx);
+    char* pshstrbuff = (char *)(pbuff + pshstr->sh_offset);
+
+    // output info
+    printf("There are %d section headers, starting at offset 0x%llx:\n\n", SH_num, (unsigned long long)(*(Elf64_Off*) (pbuff + 40)));
+    printf("Section Headers:\n");
+    printf("  [Nr] %-16s  %-16s  %-16s  %-16s\n", "Name", "Type", "Address", "Offset");
+    printf("       %-16s  %-16s  %-5s  %-5s  %-5s  %-5s\n", "Size", "EntSize", "Flags", "Link", "Info", "Align");
+
+
+    for (int i = 0; i < SH_num; ++i) {
+        // Name
+        printf("  [%2d] %-16s  ", i, (char *)(psecheader[i].sh_name + pshstrbuff)); // sh_name: index of shdr string table; pshstrbuff: string table
+
+        // Type
+        switch (psecheader[i].sh_type) {
+            case SHT_NULL:
+                printf("%-16s  ", "NULL");break;
+            case SHT_PROGBITS:
+                printf("%-16s  ", "PROGBITS");break;
+            case SHT_SYMTAB:
+                printf("%-16s  ", "SYMTAB");break;
+            case SHT_STRTAB:
+                printf("%-16s  ", "STRTAB");break;
+            case SHT_RELA:
+                printf("%-16s  ", "RELA");break;
+            case SHT_HASH:
+                printf("%-16s  ", "GNU_HASH");break;
+            case SHT_DYNAMIC:
+                printf("%-16s  ", "DYNAMIC");break;
+            case SHT_NOTE:
+                printf("%-16s  ", "NOTE");break;
+            case SHT_NOBITS:
+                printf("%-16s  ", "NOBITS");break;
+            case SHT_REL:
+                printf("%-16s  ", "REL");break;
+            case SHT_SHLIB:
+                printf("%-16s  ", "SHLIB");break;
+            case SHT_DYNSYM:
+                printf("%-16s  ", "DYNSYM");break;
+            case SHT_INIT_ARRAY:
+                printf("%-16s  ", "INIT_ARRY");break;
+            case SHT_FINI_ARRAY:
+                printf("%-16s  ", "FINI_ARRY");break;
+            case SHT_PREINIT_ARRAY:
+                printf("%-16s  ", "PREINIT_ARRAY");break;
+            case SHT_GROUP:
+                printf("%-16s  ", "GROUP");break;
+            case SHT_SYMTAB_SHNDX:
+                printf("%-16s  ", "SYMTAB_SHNDX");break;
+            case SHT_NUM:
+                printf("%-16s  ", "NUM");break;
+            case SHT_LOOS:
+                printf("%-16s  ", "LOOS");break;
+            case SHT_GNU_ATTRIBUTES:
+                printf("%-16s  ", "GNU_ATTRIBUTES");break;
+            case SHT_GNU_HASH:
+                printf("%-16s  ", "GNU_HASH");break;
+            case SHT_GNU_LIBLIST:
+                printf("%-16s  ", "GNU_LIBLIST");break;
+            case SHT_CHECKSUM:
+                printf("%-16s  ", "CHECKSUM");break;
+            case SHT_LOSUNW:
+                printf("%-16s  ", "LOSUNW");break;
+            // case SHT_SUNW_move:
+            //     printf("%-16s  ", "SUNW_move");break;
+            case SHT_SUNW_COMDAT:
+                printf("%-16s  ", "SUNW_COMDAT");break;
+            case SHT_SUNW_syminfo:
+                printf("%-16s  ", "SUNW_syminfo");break;
+            case SHT_GNU_verdef:
+                printf("%-16s  ", "GNU_verdef");break;
+            case SHT_GNU_verneed:
+                printf("%-16s  ", "GNU_verneed");break;
+            case SHT_GNU_versym:
+                printf("%-16s  ", "GNU_versym");break;
+            // case SHT_HISUNW:
+            //     printf("%-16s  ", "HISUNW");break;
+            // case SHT_HIOS:
+            //     printf("%-16s  ", "HIOS");break;
+            case SHT_LOPROC:
+                printf("%-16s  ", "LOPROC");break;
+            case SHT_HIPROC:
+                printf("%-16s  ", "HIPROC");break;
+            case SHT_LOUSER:
+                printf("%-16s  ", "LOUSER");break;
+            case SHT_HIUSER:
+                printf("%-16s  ", "HIUSER");break;
+            default:
+                printf("%-16s  ", "NONE");break;
+        }
