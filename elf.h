@@ -25,6 +25,10 @@
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
    02111-1307 USA.  */
 
+/* This file is modified by @wwyqianqian in Jan 2021.
+   From line 371 to 388, 'sh_flags' has been changed.
+*/
+
 #ifndef _ELF_H
 #define _ELF_H 1
 
@@ -366,23 +370,23 @@ typedef struct
 
 /* Legal values for sh_flags (section flags).  */
 
-#define SHF_WRITE        (1 << 0)   /* Writable */
-#define SHF_ALLOC        (1 << 1)   /* Occupies memory during execution */
-#define SHF_EXECINSTR        (1 << 2)   /* Executable */
-#define SHF_MERGE        (1 << 4)   /* Might be merged */
-#define SHF_STRINGS      (1 << 5)   /* Contains nul-terminated strings */
-#define SHF_INFO_LINK        (1 << 6)   /* `sh_info' contains SHT index */
-#define SHF_LINK_ORDER       (1 << 7)   /* Preserve order after combining */
-#define SHF_OS_NONCONFORMING (1 << 8)   /* Non-standard OS specific handling
-                       required */
-#define SHF_GROUP        (1 << 9)   /* Section is member of a group.  */
-#define SHF_TLS          (1 << 10)  /* Section hold thread-local data.  */
-#define SHF_MASKOS       0x0ff00000 /* OS-specific.  */
-#define SHF_MASKPROC         0xf0000000 /* Processor-specific */
-#define SHF_ORDERED      (1 << 30)  /* Special ordering requirement
-                       (Solaris).  */
-#define SHF_EXCLUDE      (1 << 31)  /* Section is excluded unless
-                       referenced or allocated (Solaris).*/
+#define SHF_WRITE             (1 << 0)        /* Writable value = 1 W */
+#define SHF_ALLOC             (1 << 1)        /* Occupies memory during execution value = 2 A */
+#define SHF_EXECINSTR         (1 << 2)        /* Executable value = 4 X */
+
+#define SHF_MERGE             (1 << 4)        /* Might be merged */
+#define SHF_STRINGS           (1 << 5)        /* Contains nul-terminated strings */
+#define SHF_INFO_LINK         (1 << 6)        /* `sh_info' contains SHT index */
+#define SHF_LINK_ORDER        (1 << 7)        /* Preserve order after combining */
+#define SHF_OS_NONCONFORMING  (1 << 8)        /* Non-standard OS specific handlingrequired */
+#define SHF_GROUP             (1 << 9)        /* Section is member of a group.  */
+#define SHF_TLS               (1 << 10)       /* Section hold thread-local data.  */
+#define SHF_COMPRESSED        (1 << 11)       /* Section with compressed data. */
+#define SHF_MASKOS            0x0ff00000      /* OS-specific.  */
+#define SHF_MASKPROC          0xf0000000      /* Processor-specific */
+#define SHF_ORDERED           (1 << 30)       /* Special ordering requirement (Solaris).  */
+#define SHF_EXCLUDE           (1U << 31)      /* Section is excluded unless referenced or allocated (Solaris).*/
+
 
 /* Section group handling.  */
 #define GRP_COMDAT  0x1     /* Mark group as COMDAT.  */

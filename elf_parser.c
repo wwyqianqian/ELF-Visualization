@@ -1,6 +1,6 @@
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/types.h>
@@ -620,3 +620,105 @@ void get_section_headers(const char *pbuff) {
             default:
                 printf("%-16s  ", "NONE");break;
         }
+
+        // Address & Offset
+        printf("%016llX  %08llX\n", psecheader[i].sh_addr, psecheader[i].sh_offset);
+
+        // Size & EntSize
+        printf("       %016llX  %016llx  ", psecheader[i].sh_size, psecheader[i].sh_entsize);
+
+        // Flags
+        /*
+        ------------------------------- elf.h sh_flags define -------------------------------
+        #define SHF_WRITE             (1 << 0)               1     1      W (write)
+        #define SHF_ALLOC             (1 << 1)              10     2      A (alloc)
+        #define SHF_EXECINSTR         (1 << 2)             100     4      X (execute)
+
+        #define SHF_MERGE             (1 << 4)           10000     16     M (merge)
+        #define SHF_STRINGS           (1 << 5)          100000     32     S (strings)
+        #define SHF_INFO_LINK         (1 << 6)         1000000     64     I (info)
+        #define SHF_LINK_ORDER        (1 << 7)        10000000     128    L (link order)
+        #define SHF_OS_NONCONFORMING  (1 << 8)       100000000     256    O (extra OS processing required)
+        #define SHF_GROUP             (1 << 9)      1000000000     512    G (group)
+        #define SHF_TLS               (1 << 10)    10000000000     1024   T (TLS)
+        #define SHF_COMPRESSED        (1 << 11)   100000000000     2048   C (compressed)
+        #define SHF_MASKOS            0x0ff00000                          o (OS specific)
+        #define SHF_MASKPROC          0xf0000000                          p (processor specific)
+        #define SHF_ORDERED           (1 << 30)
+        #define SHF_EXCLUDE           (1U << 31)                          E (exclude)
+        -------------------------------------------------------------------------------------
+        Key to Flags:
+        W (write), A (alloc), X (execute), M (merge), S (strings), I (info),
+        L (link order), O (extra OS processing required), G (group), T (TLS),
+        C (compressed), x (unknown), o (OS specific), E (exclude),
+        l (large), p (processor specific), D(SHF_ORDERED).
+
+        */
+
+
+        switch (psecheader[i].sh_flags) {
+            case 0:
+                printf("");
+                break;
+            case SHF_MASKOS:
+                printf("o");
+                break;
+            case SHF_MASKPROC:
+                printf("p");
+                break;
+            case SHF_EXCLUDE:
+                printf("E");
+                break;
+            case SHF_ORDERED:
+                printf("D");
+                break;
+
+            default:
+
+                if ((psecheader[i].sh_flags & 0b000000000001) != 0) {
+                    printf("W");
+                }
+                if ((psecheader[i].sh_flags & 0b000000000010) != 0) {
+                    printf("A");
+                }
+                if ((psecheader[i].sh_flags & 0b000000000100) != 0) {
+                    printf("X");
+                }
+                if ((psecheader[i].sh_flags & 0b000000010000) != 0) {
+                    printf("M");
+                }
+                if ((psecheader[i].sh_flags & 0b000000100000) != 0) {
+                    printf("S");
+                }
+                if ((psecheader[i].sh_flags & 0b000001000000) != 0) {
+                    printf("I");
+                }
+                if ((psecheader[i].sh_flags & 0b000010000000) != 0) {
+                    printf("L");
+                }
+                if ((psecheader[i].sh_flags & 0b000100000000) != 0) {
+                    printf("O");
+                }
+                if ((psecheader[i].sh_flags & 0b001000000000) != 0) {
+                    printf("G");
+                }
+                if ((psecheader[i].sh_flags & 0b010000000000) != 0) {
+                    printf("T");
+                }
+                if ((psecheader[i].sh_flags & 0b100000000000) != 0) {
+                    printf("C");
+                }
+
+                break;
+        }
+
+        // Link  Info  Align
+        printf("    %4u  %4u  %4llu\n", psecheader[i].sh_link, psecheader[i].sh_info, psecheader[i].sh_addralign);
+    }
+
+    // print map
+    printf("Key to Flags:\n");
+    printf("  W (write), A (alloc), X (execute), M (merge), S (strings), I (info),\n");
+    printf("  L (link order), O (extra OS processing required), G (group), T (TLS), C (compressed),\n");
+    printf("  x (unknown), o (OS specific), E (exclude), l (large), p (processor specific), D (SHF_ORDERED).\n");
+}
