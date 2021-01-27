@@ -878,3 +878,121 @@ void get_program_headers(const char *pbuff) {
         printf("\n");
     }
 }
+
+/*
+funtion of get the symbol table
+*/
+void get_symbol_table(const char *pbuff) {
+    Elf64_Ehdr* pfilehead = (Elf64_Ehdr*) pbuff;
+    uint16_t eshstrndx = pfilehead->e_shstrndx;
+    Elf64_Shdr* psecheader = (Elf64_Shdr*) (pbuff + pfilehead->e_shoff);
+    Elf64_Shdr* pshstr = (Elf64_Shdr*) (psecheader + eshstrndx);
+    char* pshstrbuff = (char *)(pbuff + pshstr->sh_offset);
+
+    for (int i = 0;i < pfilehead->e_shnum; ++i) {
+        if (!strcmp(psecheader[i].sh_name + pshstrbuff, ".dynsym") || !strcmp(psecheader[i].sh_name + pshstrbuff, ".symtab")) {
+            Elf64_Sym* psym = (Elf64_Sym*) (pbuff + psecheader[i].sh_offset);
+            int ncount = psecheader[i].sh_size / psecheader[i].sh_entsize; // sh_entsize: Entry size if section holds table
+            char* pbuffstr = (char*) ((psecheader + psecheader[i].sh_link)->sh_offset + pbuff); // sh_link: Link to another section
+            printf("Symbol table '%s' contains %d entries:\n", psecheader[i].sh_name + pshstrbuff, ncount);
+            outputsyminfo(psym, pbuffstr, ncount);
+            continue;
+        }
+    }
+}
+void outputsyminfo(const Elf64_Sym *psym, const char *pbuffstr, int ncount) {
+    printf("%7s  %-8s          %s  %s    %s    %s        %s  %s\n",
+           "Num:", "Value", "Size", "Type", "Bind", "Vis", "Ndx", "Name");
+
+    for (int i = 0; i < ncount; ++i) {
+        // Print num, value, size
+        printf("%6d:  %016llx  %-6llu", i, psym[i].st_value, psym[i].st_size);
+
+        // How to extract and insert information held in the st_info field.
+        // Print type, bind
+        char typelow = ELF64_ST_TYPE(psym[i].st_info);
+        char bindhigh = ELF64_ST_BIND(psym[i].st_info);
+
+        // Legal values for ST_TYPE subfield of st_info (symbol type)
+        switch (typelow) {
+            case STT_NOTYPE:
+                printf("%-8s", "NOTYPE");break;
+            case STT_OBJECT:
+                printf("%-8s", "OBJECT");break;
+            case STT_FUNC:
+                printf("%-8s", "FUNC");break;
+            case STT_SECTION:
+                printf("%-8s", "SECTION");break;
+            case STT_FILE:
+                printf("%-8s", "FILE");break;
+            case STT_COMMON:
+                printf("%-8s", "COMMON");break;
+            case STT_TLS:
+                printf("%-8s", "TLS");break;
+            case STT_NUM:
+                printf("%-8s", "NUM");break;
+            case STT_LOOS:
+                printf("%-8s", "LOOS");break;
+            // case STT_GNU_IFUNC:
+            //     printf("%-8s", "GNU_IFUNC");break;
+            case STT_HIOS:
+                printf("%-8s", "HIOS");break;
+            case STT_LOPROC:
+                printf("%-8s", "LOPROC");break;
+            case STT_HIPROC:
+                printf("%-8s", "HIPROC");break;
+            default:
+                break;
+        }
+
+        // Legal values for ST_BIND subfield of st_info (symbol binding)
+        switch (bindhigh) {
+            case STB_LOCAL:
+                printf("%-8s", "LOCAL"); break;
+            case STB_GLOBAL:
+                printf("%-8s", "GLOBAL"); break;
+            case STB_WEAK:
+                printf("%-8s", "WEAK"); break;
+            case STB_NUM:
+                printf("%-8s", "NUM");break;
+            case STB_LOOS:
+                printf("%-8s", "LOOS");break;
+            // case STB_GNU_UNIQUE:
+            //     printf("%-8s", "GNU_UNIQUE");break;
+            case STB_HIOS:
+                printf("%-8s", "HIOS");break;
+            case STB_LOPROC:
+                printf("%-8s", "LOPROC");break;
+            case STB_HIPROC:
+                printf("%-8s", "HIPROC");break;
+            default:
+                break;
+        }
+
+        // Print vis: Symbol visibility specification encoded in the st_other field
+        switch (psym[i].st_other) {
+            case STV_DEFAULT:
+                printf("%-8s", "DEFAULT");break;
+            case STV_INTERNAL:
+                printf("%-8s", "INTERNAL");break;
+            case STV_HIDDEN:
+                printf("%-8s", "HIDDEN");break;
+            case STV_PROTECTED:
+                printf("%-8s", "PROTECTED");break;
+            default:
+                break;
+        }
+
+        // Print ndx, name
+        switch (psym[i].st_shndx) {
+            case SHN_ABS:
+                printf("   %s  %s\n", "ABS", psym[i].st_name + pbuffstr);break;
+            case SHN_COMMON:
+                printf("   %s  %s\n", "COM", psym[i].st_name + pbuffstr);break;
+            case SHN_UNDEF:
+                printf("   %s  %s\n", "UND", psym[i].st_name + pbuffstr);break;
+            default:
+                printf("   %3d  %s\n", psym[i].st_shndx, psym[i].st_name + pbuffstr);break;
+        }
+    }
+}
