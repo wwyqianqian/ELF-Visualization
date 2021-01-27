@@ -722,3 +722,159 @@ void get_section_headers(const char *pbuff) {
     printf("  L (link order), O (extra OS processing required), G (group), T (TLS), C (compressed),\n");
     printf("  x (unknown), o (OS specific), E (exclude), l (large), p (processor specific), D (SHF_ORDERED).\n");
 }
+
+/*
+funtion of get the program headers
+*/
+void get_program_headers(const char *pbuff) {
+    Elf64_Ehdr* pfilehead = (Elf64_Ehdr*) pbuff;
+    Elf64_Phdr* pproheader = (Elf64_Phdr*) (pbuff + pfilehead->e_phoff);
+    Elf64_Shdr* psecheader = (Elf64_Shdr*) (pbuff + pfilehead->e_shoff);
+    Elf64_Shdr* pshstr = (Elf64_Shdr*) (psecheader + pfilehead->e_shstrndx);
+    char* pstrbuff = (char*) (pbuff + pshstr->sh_offset);
+    printf("Elf file type is: ");
+
+    // Legal values for e_type (object file type)
+    switch (pfilehead->e_type) {
+        case 0:
+            printf("No file type\n");
+            break;
+        case 1:
+            printf("Relocatable file\n");
+            break;
+        case 2:
+            printf("Executable file\n");
+            break;
+        case 3:
+            printf("Shared object file\n");
+            break;
+        case 4:
+            printf("Core file\n");
+            break;
+        default:
+            printf(" ERROR\n");
+            break;
+    }
+
+    // Entry point virtual address e_entry
+    printf("Entry point: 0X%0llX\r\n", pfilehead->e_entry);
+
+    // e_phnum, e_phoff
+    printf("There are %d program headers, starting at offset %llu\n\n", pfilehead->e_phnum, pfilehead->e_phoff);
+
+    // Print program headers' details
+    printf("Program Headers:\n");
+    printf("  %-14s  %-16s  %-16s  %-16s\n", "Type", "Offset", "VirtAddr", "PhysAddr");
+    printf("  %-14s  %-16s  %-16s  %-6s  %-6s\n", "", "FileSiz", "MemSiz", "Flags", "Align");
+
+
+    for (int i = 0; i < pfilehead->e_phnum; ++i) {
+
+        // Type, Offset, VirAddr, PhyAddr, FileSiz, MemSiz
+        switch (pproheader[i].p_type) {
+            case PT_NULL:
+                printf("  %-14s  %016llX  %016llX  %016llX\n  %-14s  %016llX  %016llX  ", "", pproheader[i].p_offset, pproheader[i].p_vaddr,
+                       pproheader[i].p_paddr, "", pproheader[i].p_filesz, pproheader[i].p_memsz);break;
+            case PT_LOAD:
+                printf("  %-14s  %016llX  %016llX  %016llX\n  %-14s  %016llX  %016llX  ", "LOAD", pproheader[i].p_offset, pproheader[i].p_vaddr,
+                       pproheader[i].p_paddr, "", pproheader[i].p_filesz, pproheader[i].p_memsz);break;
+            case PT_DYNAMIC:
+                printf("  %-14s  %016llX  %016llX  %016llX\n  %-14s  %016llX  %016llX  ", "DYNAMIC", pproheader[i].p_offset, pproheader[i].p_vaddr,
+                       pproheader[i].p_paddr, "", pproheader[i].p_filesz, pproheader[i].p_memsz);break;
+            case PT_INTERP:
+                printf("  %-14s  %016llX  %016llX  %016llX\n  %-14s  %016llX  %016llX  ", "INTERP", pproheader[i].p_offset, pproheader[i].p_vaddr,
+                       pproheader[i].p_paddr, "", pproheader[i].p_filesz, pproheader[i].p_memsz);break;
+            case PT_NOTE:
+                printf("  %-14s  %016llX  %016llX  %016llX\n  %-14s  %016llX  %016llX  ", "NOTE", pproheader[i].p_offset, pproheader[i].p_vaddr,
+                       pproheader[i].p_paddr, "", pproheader[i].p_filesz, pproheader[i].p_memsz);break;
+            case PT_SHLIB:
+                printf("  %-14s  %016llX  %016llX  %016llX\n  %-14s  %016llX  %016llX  ", "SHLIB", pproheader[i].p_offset, pproheader[i].p_vaddr,
+                       pproheader[i].p_paddr, "", pproheader[i].p_filesz, pproheader[i].p_memsz);break;
+            case PT_PHDR:
+                printf("  %-14s  %016llX  %016llX  %016llX\n  %-14s  %016llX  %016llX  ", "PHDR", pproheader[i].p_offset, pproheader[i].p_vaddr,
+                       pproheader[i].p_paddr, "", pproheader[i].p_filesz, pproheader[i].p_memsz);break;
+            case PT_TLS:
+                printf("  %-14s  %016llX  %016llX  %016llX\n  %-14s  %016llX  %016llX  ", "TLS", pproheader[i].p_offset, pproheader[i].p_vaddr,
+                       pproheader[i].p_paddr, "", pproheader[i].p_filesz, pproheader[i].p_memsz);break;
+            case PT_NUM:
+                printf("  %-14s  %016llX  %016llX  %016llX\n  %-14s  %016llX  %016llX  ", "NUM", pproheader[i].p_offset, pproheader[i].p_vaddr,
+                       pproheader[i].p_paddr, "", pproheader[i].p_filesz, pproheader[i].p_memsz);break;
+            case PT_LOOS:
+                printf("  %-14s  %016llX  %016llX  %016llX\n  %-14s  %016llX  %016llX  ", "LOOS", pproheader[i].p_offset, pproheader[i].p_vaddr,
+                       pproheader[i].p_paddr, "", pproheader[i].p_filesz, pproheader[i].p_memsz);break;
+            case PT_GNU_EH_FRAME:
+                printf("  %-14s  %016llX  %016llX  %016llX\n  %-14s  %016llX  %016llX  ", "GNU_EH_FRAME", pproheader[i].p_offset, pproheader[i].p_vaddr,
+                       pproheader[i].p_paddr, "", pproheader[i].p_filesz, pproheader[i].p_memsz);break;
+            case PT_GNU_STACK:
+                printf("  %-14s  %016llX  %016llX  %016llX\n  %-14s  %016llX  %016llX  ", "GNU_STACK", pproheader[i].p_offset, pproheader[i].p_vaddr,
+                       pproheader[i].p_paddr, "", pproheader[i].p_filesz, pproheader[i].p_memsz);break;
+            case PT_GNU_RELRO:
+                printf("  %-14s  %016llX  %016llX  %016llX\n  %-14s  %016llX  %016llX  ", "GNU_RELRO", pproheader[i].p_offset, pproheader[i].p_vaddr,
+                       pproheader[i].p_paddr, "", pproheader[i].p_filesz, pproheader[i].p_memsz);break;
+            case PT_LOSUNW:
+                printf("  %-14s  %016llX  %016llX  %016llX\n  %-14s  %016llX  %016llX  ", "LOSUNW", pproheader[i].p_offset, pproheader[i].p_vaddr,
+                       pproheader[i].p_paddr, "", pproheader[i].p_filesz, pproheader[i].p_memsz);break;
+            // case PT_SUNWBSS:
+            //     printf("  %-14s  %016llX  %016llX  %016llX\n  %-14s  %016llX  %016llX  ", "SUNWBSS", pproheader[i].p_offset, pproheader[i].p_vaddr,
+            //            pproheader[i].p_paddr, "", pproheader[i].p_filesz, pproheader[i].p_memsz);break;
+            case PT_SUNWSTACK:
+                printf("  %-14s  %016llX  %016llX  %016llX\n  %-14s  %016llX  %016llX  ", "SUNWSTACK", pproheader[i].p_offset, pproheader[i].p_vaddr,
+                       pproheader[i].p_paddr, "", pproheader[i].p_filesz, pproheader[i].p_memsz);break;
+            case PT_HISUNW:
+                printf("  %-14s  %016llX  %016llX  %016llX\n  %-14s  %016llX  %016llX  ", "HISUNW", pproheader[i].p_offset, pproheader[i].p_vaddr,
+                       pproheader[i].p_paddr, "", pproheader[i].p_filesz, pproheader[i].p_memsz);break;
+            // case PT_HIOS:
+            //     printf("  %-14s  %016llX  %016llX  %016llX\n  %-14s  %016llX  %016llX  ", "HIOS", pproheader[i].p_offset, pproheader[i].p_vaddr,
+            //            pproheader[i].p_paddr, "", pproheader[i].p_filesz, pproheader[i].p_memsz);break;
+            case PT_LOPROC:
+                printf("  %-14s  %016llX  %016llX  %016llX\n  %-14s  %016llX  %016llX  ", "LOPROC", pproheader[i].p_offset, pproheader[i].p_vaddr,
+                       pproheader[i].p_paddr, "", pproheader[i].p_filesz, pproheader[i].p_memsz);break;
+            case PT_HIPROC:
+                printf("  %-14s  %016llX  %016llX  %016llX\n  %-14s  %016llX  %016llX  ", "HIPROC", pproheader[i].p_offset, pproheader[i].p_vaddr,
+                       pproheader[i].p_paddr, "", pproheader[i].p_filesz, pproheader[i].p_memsz);break;
+            default:
+                break;
+        }
+
+        // Flags: Legal values for p_flags (segment flags)
+        // Align
+        switch (pproheader[i].p_flags) {
+            case PF_X:
+                printf("%-6s  0X%-llX\n", "  E", pproheader[i].p_align);break;
+            case PF_W:
+                printf("%-6s  0X%-llX\n", " W ", pproheader[i].p_align);break;
+            case PF_R:
+                printf("%-6s  0X%-llX\n", "R  ", pproheader[i].p_align);break;
+            case PF_X|PF_W:
+                printf("%-6s  0X%-llX\n", " WE", pproheader[i].p_align);break;
+            case PF_X|PF_R:
+                printf("%-6s  0X%-llX\n", "R E", pproheader[i].p_align);break;
+            case PF_W|PF_R:
+                printf("%-6s  0X%-llX\n", "RW ", pproheader[i].p_align);break;
+            case PF_X|PF_R|PF_W:
+                printf("%-6s  0X%-llX\n", "RWE", pproheader[i].p_align);break;
+            default:
+                printf("\n");
+                break;
+        }
+
+        // Segment file offset
+        if(PT_INTERP == pproheader[i].p_type)
+            printf("      [Requesting program interpreter: %s]\n", (char*) (pbuff + pproheader[i].p_offset));
+    }
+
+    // Print mapping
+    printf("\n Section to Segment mapping:\n");
+    printf("  Segment Sections...\n");
+    for (int i = 0; i < pfilehead->e_phnum; ++i) {
+        printf("   %-7d", i);
+        for (int n = 0; n < pfilehead->e_shnum; ++n) {
+            Elf64_Off temp = psecheader[n].sh_addr + psecheader[n].sh_size;
+            if ((psecheader[n].sh_addr > pproheader[i].p_vaddr && psecheader[n].sh_addr < pproheader[i].p_vaddr + pproheader[i].p_memsz) ||
+                (temp > pproheader[i].p_vaddr && temp <= pproheader[i].p_vaddr + pproheader[i].p_memsz)) {
+                printf("%s ", (char*) (psecheader[n].sh_name + pstrbuff));
+            }
+        }
+        printf("\n");
+    }
+}
