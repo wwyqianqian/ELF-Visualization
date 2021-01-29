@@ -996,3 +996,127 @@ void outputsyminfo(const Elf64_Sym *psym, const char *pbuffstr, int ncount) {
         }
     }
 }
+
+/*
+funtion of get the relocation entries
+*/
+void get_relocation_entries(const char *pbuff) {
+    Elf64_Ehdr* pfilehead = (Elf64_Ehdr*) pbuff;
+    Elf64_Shdr* psecheader = (Elf64_Shdr*) (pbuff + pfilehead->e_shoff);
+    Elf64_Shdr* pshstr = (Elf64_Shdr*) (psecheader + pfilehead->e_shstrndx);
+    char* pstrbuff = (char*) (pbuff + pshstr->sh_offset);
+
+    for (int i = 0; i < pfilehead->e_shnum; ++i) {
+        if (!strncmp(psecheader[i].sh_name + pstrbuff, ".rel", 4)) {
+            int ncount = psecheader[i].sh_size / psecheader[i].sh_entsize;
+
+            // Print sh_name, sh_offset, count
+            printf("\nRelocation section'%s' at offset %0llX contains %d entrie(s):\n", psecheader[i].sh_name + pstrbuff, psecheader[i].sh_offset, ncount);
+            Elf64_Rela* preltable = (Elf64_Rela*) (pbuff + psecheader[i].sh_offset);
+
+            // sh_link: Link to another section
+            printf("%-16s  %-16s  %-16s   %-16s  %-16s\n", "Offset", "Info", "Type", "Sym.Value", "Sym.Name + Addend");
+            int symnum = psecheader[i].sh_link;
+            int strnum = psecheader[symnum].sh_link;
+
+            // relocated string buffer
+            char* prelstrbuf = (char*) (psecheader[strnum].sh_offset + pbuff);
+
+            // symbol
+            Elf64_Sym* psym = (Elf64_Sym*) (pbuff + psecheader[symnum].sh_offset);
+            for (int n = 0; n < ncount; ++n) {
+
+                // Print offset, info
+                printf("%016llX  %016llX  ", preltable[n].r_offset, preltable[n].r_info);
+
+                // Print relocations: elf.h:2676
+                // Only for AMD x86-64 relocations
+                switch (ELF64_R_TYPE(preltable[n].r_info)) {
+                    case R_X86_64_NONE:
+                        printf("%-16s", "R_X86_64_NONE");break;
+                    case R_X86_64_64:
+                        printf("%-16s", "R_X86_64_64");break;
+                    case R_X86_64_PC32:
+                        printf("%-16s", "R_X86_64_PC32");break;
+                    case R_X86_64_GOT32:
+                        printf("%-16s", "R_X86_64_GOT32");break;
+                    case R_X86_64_PLT32:
+                        printf("%-16s", "R_X86_64_PLT32");break;
+                    case R_X86_64_COPY:
+                        printf("%-16s", "R_X86_64_COPY");break;
+                    case R_X86_64_GLOB_DAT:
+                        printf("%-16s", "R_X86_64_GLOB_DAT");break;
+                    case R_X86_64_JUMP_SLOT:
+                        printf("%-16s", "R_X86_64_JUMP_SLOT");break;
+                    case R_X86_64_RELATIVE:
+                        printf("%-16s", "R_X86_64_RELATIVE");break;
+                    case R_X86_64_GOTPCREL:
+                        printf("%-16s", "R_X86_64_GOTPCREL");break;
+                    case R_X86_64_32:
+                        printf("%-16s", "R_X86_64_32");break;
+                    case R_X86_64_32S:
+                        printf("%-16s", "R_X86_64_32S");break;
+                    case R_X86_64_16:
+                        printf("%-16s", "R_X86_64_16");break;
+                    case R_X86_64_PC16:
+                        printf("%-16s", "R_X86_64_PC16");break;
+                    case R_X86_64_8:
+                        printf("%-16s", "R_X86_64_8");break;
+                    case R_X86_64_PC8:
+                        printf("%-16s", "R_X86_64_PC8");break;
+                    case R_X86_64_DTPMOD64:
+                        printf("%-16s", "R_X86_64_DTPMOD64");break;
+                    case R_X86_64_DTPOFF64:
+                        printf("%-16s", "R_X86_64_DTPOFF64");break;
+                    case R_X86_64_TPOFF64:
+                        printf("%-16s", "R_X86_64_TPOFF64");break;
+                    case R_X86_64_TLSGD:
+                        printf("%-16s", "R_X86_64_TLSGD");break;
+                    case R_X86_64_TLSLD:
+                        printf("%-16s", "R_X86_64_TLSLD");break;
+                    case R_X86_64_DTPOFF32:
+                        printf("%-16s", "R_X86_64_DTPOFF32");break;
+                    case R_X86_64_GOTTPOFF:
+                        printf("%-16s", "R_X86_64_GOTTPOFF");break;
+                    case R_X86_64_TPOFF32:
+                        printf("%-16s", "R_X86_64_TPOFF32");break;
+                    case R_X86_64_PC64:
+                        printf("%-16s", "R_X86_64_PC64");break;
+                    case R_X86_64_GOTOFF64:
+                        printf("%-16s", "R_X86_64_GOTOFF64");break;
+                    case R_X86_64_GOTPC32:
+                        printf("%-16s", "R_X86_64_GOTPC32");break;
+                    case R_X86_64_GOT64:
+                        printf("%-16s", "R_X86_64_GOT64");break;
+                    case R_X86_64_GOTPCREL64:
+                        printf("%-16s", "R_X86_64_GOTPCREL64");break;
+                    case R_X86_64_GOTPC64:
+                        printf("%-16s", "R_X86_64_GOTPC64");break;
+                    case R_X86_64_GOTPLT64:
+                        printf("%-16s", "R_X86_64_GOTPLT64");break;
+                    case R_X86_64_PLTOFF64:
+                        printf("%-16s", "R_X86_64_PLTOFF64");break;
+                    case R_X86_64_SIZE32:
+                        printf("%-16s", "R_X86_64_SIZE32");break;
+                    case R_X86_64_SIZE64:
+                        printf("%-16s", "R_X86_64_SIZE64");break;
+                    case R_X86_64_GOTPC32_TLSDESC:
+                        printf("%-16s", "R_X86_64_GOTPC32_TLSDESC");break;
+                    case R_X86_64_TLSDESC_CALL:
+                        printf("%-16s", "R_X86_64_TLSDESC_CALL");break;
+                    case R_X86_64_TLSDESC:
+                        printf("%-16s", "R_X86_64_TLSDESC");break;
+                    case R_X86_64_IRELATIVE:
+                        printf("%-16s", "R_X86_64_IRELATIVE");break;
+                    case R_X86_64_NUM:
+                        printf("%-16s", "R_X86_64_NUM");break;
+                    default:
+                        break;
+                }
+                printf("  %016llX  ", (psym + ELF64_R_SYM(preltable[n].r_info))->st_value);
+
+                printf("%s + %llu\n", (char*) (prelstrbuf + (psym + ELF64_R_SYM(preltable[n].r_info))->st_name), preltable[n].r_addend);
+            }
+        }
+    }
+}
