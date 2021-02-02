@@ -757,7 +757,7 @@ void get_program_headers(const char *pbuff) {
     }
 
     // Entry point virtual address e_entry
-    printf("Entry point: 0X%0llX\r\n", pfilehead->e_entry);
+    printf("Entry point: 0X%0llX\n", pfilehead->e_entry);
 
     // e_phnum, e_phoff
     printf("There are %d program headers, starting at offset %llu\n\n", pfilehead->e_phnum, pfilehead->e_phoff);
