@@ -1,4 +1,4 @@
-const { execFile } = require("child_process");
+const { spawn } = require("child_process");
 const path = require("path");
 
 export default function handler(req, res) {
@@ -8,10 +8,17 @@ export default function handler(req, res) {
   }
 
   const binary = path.resolve(process.cwd(), "elf_parser");
-  execFile(binary, [...args], (error, stdout, stderr) => {
-    if (error) {
-      throw error;
-    }
-    res.status(200).send(stdout);
+  const program = spawn(binary, [...args]);
+
+  program.stdout.on("data", (data) => {
+    res.status(200).write(data);
+  });
+
+  program.stderr.on("data", (data) => {
+    res.status(200).write(data);
+  });
+
+  program.on("exit", () => {
+    res.status(200).end();
   });
 }
