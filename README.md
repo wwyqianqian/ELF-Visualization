@@ -17,6 +17,11 @@ npm run dev || yarn dev
 Then move to `http://localhost:3000`.
 Note Bene: `npm run dev` do not work in the fish shell. Pleace change to zsh or bash(e.g.).
 
+## Running screenshot
+![ELF Header](./1header.png)
+![Programe Headers](./2ph.png)
+![Symbol table](./3st.png)
+
 ## Contributors
 Thanks to all the people who contribute. Feel free to dive in! Open an issue or submit PRs.
 [@wwyqianqian](https://github.com/wwyqianqian/)
